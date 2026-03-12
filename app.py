@@ -83,34 +83,33 @@ if check_password():
         if uploaded_file is not None:
             st.image(uploaded_file, caption="✅ Photo prête", width=150)
         
-        user_input_loopix = st.text_area("Votre souhait (ex: Moi en astronaute) :", height=150)
+        user_input_loopix = st.text_area("Votre souhait :", height=150)
         
         if st.button("Générer le Prompt"):
             if user_input_loopix and uploaded_file:
-                with st.spinner("LooPix analyse votre visage et crée le prompt..."):
+                with st.spinner("LooPix analyse..."):
                     try:
                         img = PIL.Image.open(uploaded_file)
                         
-                        # On essaie le nom le plus court possible
+                        # NOM DE MODÈLE SANS PRÉFIXE (La norme 2026)
                         model = genai.GenerativeModel('gemini-1.5-flash')
                         
-                        # On vérifie si on peut lui parler
+                        # On envoie tout dans un seul paquet
                         response = model.generate_content([
-                            "Agis en expert Midjourney. Crée un prompt pour : " + user_input_loopix, 
+                            f"Tu es LooPix. Crée un prompt Midjourney en anglais pour : {user_input_loopix}",
                             img
                         ])
                         
                         st.markdown("---")
                         st.write(response.text)
+                        
                     except Exception as e:
-                        # Si ça échoue, on tente le nom avec 'models/' automatiquement
+                        # SI LE PREMIER ECHOUE, ON TENTE LE NOM DE SECOURS
                         try:
-                            model = genai.GenerativeModel('models/gemini-1.5-flash')
-                            response = model.generate_content(["Prompt : " + user_input_loopix, img])
+                            model = genai.GenerativeModel('gemini-1.5-pro')
+                            response = model.generate_content([user_input_loopix, img])
                             st.write(response.text)
                         except:
-                            st.error(f"Désolé, l'API Google refuse la connexion. Erreur : {e}")
-                    except Exception as e:
-                        st.error(f"Erreur technique : {e}")
+                            st.error(f"Erreur de connexion API : {e}")
             else:
                 st.warning("Il manque la photo ou le texte !")
