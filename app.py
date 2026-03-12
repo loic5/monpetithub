@@ -76,35 +76,38 @@ if check_password():
     # --- 4. MOTEUR : LOOPIX ---
     elif st.session_state.page == "loopix":
         st.title("⚡ LooPix")
-        st.write("Décrivez votre mise en scène et ajoutez votre photo.")
         
+        # --- DIAGNOSTIC (À enlever quand ça marchera) ---
+        with st.expander("🔍 Diagnostic de ta clé API"):
+            try:
+                models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+                st.write("Modèles accessibles avec ta clé :", models)
+            except Exception as e:
+                st.error(f"Impossible de lister les modèles : {e}")
+        # -----------------------------------------------
+
         uploaded_file = st.file_uploader("Choisir une photo...", type=['png', 'jpg', 'jpeg'])
+        if uploaded_file:
+            st.image(uploaded_file, width=150)
         
-        if uploaded_file is not None:
-            st.image(uploaded_file, caption="✅ Photo prête", width=150)
+        user_input_loopix = st.text_area("Votre souhait :")
         
-        user_input_loopix = st.text_area("Votre souhait :", height=150)
-        
-        if st.button("Générer le Prompt"):
+        if st.button("Générer"):
             if user_input_loopix and uploaded_file:
-                with st.spinner("LooPix analyse..."):
+                with st.spinner("Analyse..."):
                     try:
                         img = PIL.Image.open(uploaded_file)
+                        # On utilise le nom universel sans le préfixe 'models/'
+                        # car la bibliothèque l'ajoute souvent toute seule
+                        model = genai.GenerativeModel('gemini-1.5-flash')
                         
-                        # On utilise 'gemini-1.5-flash-latest' qui est le plus stable
-                        model = genai.GenerativeModel('gemini-1.5-flash-latest')
-                        
-                        # On envoie une liste simple : le texte d'abord, l'image ensuite
                         response = model.generate_content([
-                            f"Act as a professional prompt engineer for Midjourney. Look at the person in this image and create a highly detailed English prompt to put them in this scene: {user_input_loopix}. Describe the lighting, camera gear, and facial features from the photo.",
+                            f"Instructions: Create a Midjourney prompt for: {user_input_loopix}",
                             img
                         ])
-                        
-                        st.markdown("---")
-                        st.markdown("### ✨ Résultat LooPix")
+                        st.success("Terminé !")
                         st.write(response.text)
-                        
                     except Exception as e:
-                        st.error(f"Désolé, l'API refuse encore la connexion. Erreur : {e}")
+                        st.error(f"L'erreur est : {e}")
             else:
                 st.warning("Il manque la photo ou le texte !")
