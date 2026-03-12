@@ -73,17 +73,37 @@ if check_password():
                     st.markdown("### 📋 Résultat")
                     st.write(response.text)
 
-    # --- 4. MOTEUR : LOOPIX (Anciennement Martine) ---
+    # --- 4. MOTEUR : LOOPIX (L'Architecte d'Image) ---
     elif st.session_state.page == "loopix":
         st.title("⚡ LooPix")
-        st.write("Bienvenue dans l'interface LooPix.")
+        st.write("Décrivez votre mise en scène et ajoutez votre photo de référence.")
         
-        user_input_loopix = st.text_area("Entrez votre demande pour LooPix :", height=200)
+        # AJOUT : Bouton pour télécharger la photo
+        uploaded_file = st.file_uploader("Choisissez votre photo de référence...", type=['png', 'jpg', 'jpeg'])
         
-        if st.button("Générer avec LooPix"):
-            if user_input_loopix:
-                with st.spinner("LooPix réfléchit..."):
+        user_input_loopix = st.text_area("Votre souhait (ex: Moi en tenue de samouraï dans le futur) :", height=150)
+        
+        if st.button("Générer le Prompt Expert"):
+            if user_input_loopix and uploaded_file:
+                with st.spinner("LooPix analyse votre photo et crée le prompt..."):
+                    # On charge l'image pour l'envoyer à Gemini
+                    import PIL.Image
+                    img = PIL.Image.open(uploaded_file)
+                    
                     model = genai.GenerativeModel('gemini-1.5-flash', 
-                        system_instruction="METS TON PROMPT LOOPIX ICI")
-                    response = model.generate_content(user_input_loopix)
+                        system_instruction="""Tu es LooPix. Ta mission est d'analyser la photo fournie (traits du visage, cheveux, style) et la demande de l'utilisateur pour créer un PROMPT TECHNIQUE en ANGLAIS pour Midjourney.
+                        
+                        Structure ta réponse ainsi :
+                        1. **Prompt technique (Anglais)** : Un paragraphe détaillé commençant par 'A high-quality photo of [description de la personne basée sur l'image]...' en incluant le décor, les habits et l'éclairage. Ajoute les paramètres '--ar 16:9 --v 6.0'.
+                        2. **Note de LooPix (Français)** : Explique tes choix artistiques.""")
+                    
+                    # On envoie le texte + l'image
+                    response = model.generate_content([user_input_loopix, img])
+                    
+                    st.markdown("---")
+                    st.markdown("### ✨ Résultat de la conception")
                     st.write(response.text)
+            elif not uploaded_file:
+                st.warning("Pense à ajouter une photo pour que je sache à quoi tu ressembles !")
+            else:
+                st.warning("Dis-moi ce que tu veux faire (le contexte, l'endroit...)")
