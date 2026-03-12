@@ -91,21 +91,25 @@ if check_password():
                     try:
                         img = PIL.Image.open(uploaded_file)
                         
-                        # INITIALISATION SIMPLE
-                        model = genai.GenerativeModel('models/gemini-1.5-flash-8b')
+                        # On essaie le nom le plus court possible
+                        model = genai.GenerativeModel('gemini-1.5-flash')
                         
-                        # CONSTRUCTION DU MESSAGE (Texte + Image)
-                        # On met les instructions directement dans le message envoyé
-                        prompt_complet = [
-                            f"CONTEXTE: Tu es LooPix, expert en Midjourney. Analyse la personne sur cette photo et crée un prompt en anglais pour la mettre dans cette situation : {user_input_loopix}. RÉPONSE ATTENDUE: Le prompt technique détaillé en anglais, puis une explication courte en français.",
+                        # On vérifie si on peut lui parler
+                        response = model.generate_content([
+                            "Agis en expert Midjourney. Crée un prompt pour : " + user_input_loopix, 
                             img
-                        ]
-                        
-                        response = model.generate_content(prompt_complet)
+                        ])
                         
                         st.markdown("---")
-                        st.markdown("### ✨ Résultat LooPix")
                         st.write(response.text)
+                    except Exception as e:
+                        # Si ça échoue, on tente le nom avec 'models/' automatiquement
+                        try:
+                            model = genai.GenerativeModel('models/gemini-1.5-flash')
+                            response = model.generate_content(["Prompt : " + user_input_loopix, img])
+                            st.write(response.text)
+                        except:
+                            st.error(f"Désolé, l'API Google refuse la connexion. Erreur : {e}")
                     except Exception as e:
                         st.error(f"Erreur technique : {e}")
             else:
