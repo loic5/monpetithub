@@ -91,25 +91,20 @@ if check_password():
                     try:
                         img = PIL.Image.open(uploaded_file)
                         
-                        # NOM DE MODÈLE SANS PRÉFIXE (La norme 2026)
-                        model = genai.GenerativeModel('gemini-1.5-flash')
+                        # On utilise 'gemini-1.5-flash-latest' qui est le plus stable
+                        model = genai.GenerativeModel('gemini-1.5-flash-latest')
                         
-                        # On envoie tout dans un seul paquet
+                        # On envoie une liste simple : le texte d'abord, l'image ensuite
                         response = model.generate_content([
-                            f"Tu es LooPix. Crée un prompt Midjourney en anglais pour : {user_input_loopix}",
+                            f"Act as a professional prompt engineer for Midjourney. Look at the person in this image and create a highly detailed English prompt to put them in this scene: {user_input_loopix}. Describe the lighting, camera gear, and facial features from the photo.",
                             img
                         ])
                         
                         st.markdown("---")
+                        st.markdown("### ✨ Résultat LooPix")
                         st.write(response.text)
                         
                     except Exception as e:
-                        # SI LE PREMIER ECHOUE, ON TENTE LE NOM DE SECOURS
-                        try:
-                            model = genai.GenerativeModel('gemini-1.5-pro')
-                            response = model.generate_content([user_input_loopix, img])
-                            st.write(response.text)
-                        except:
-                            st.error(f"Erreur de connexion API : {e}")
+                        st.error(f"Désolé, l'API refuse encore la connexion. Erreur : {e}")
             else:
                 st.warning("Il manque la photo ou le texte !")
