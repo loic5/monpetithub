@@ -90,7 +90,7 @@ if check_password():
                     import PIL.Image
                     img = PIL.Image.open(uploaded_file)
                     
-                    model = genai.GenerativeModel('gemini-1.5-flash', 
+                    model = genai.GenerativeModel('models/gemini-1.5-flash', 
                         system_instruction="""Tu es LooPix. Ta mission est d'analyser la photo fournie (traits du visage, cheveux, style) et la demande de l'utilisateur pour créer un PROMPT TECHNIQUE en ANGLAIS pour Midjourney.
                         
                         Structure ta réponse ainsi :
