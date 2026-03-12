@@ -1,6 +1,6 @@
 import streamlit as st
 import google.generativeai as genai
-import PIL.Image # Importé ici pour plus de stabilité
+import PIL.Image
 
 # --- 1. CONFIGURATION & SÉCURITÉ ---
 st.set_page_config(page_title="Mon AI Hub Privé", layout="wide")
@@ -67,9 +67,9 @@ if check_password():
         if st.button("Lancer l'Analyse"):
             if user_input:
                 with st.spinner("Analyse en cours..."):
-                    model = genai.GenerativeModel('gemini-1.5-flash', 
-                        system_instruction="METS TON PROMPT PROFILE SCORER ICI")
-                    response = model.generate_content(user_input)
+                    # On utilise une config simple sans system_instruction ici pour tester la stabilité
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    response = model.generate_content(f"Agis en tant que recruteur expert. Analyse ce texte et donne un score : {user_input}")
                     st.markdown("### 📋 Résultat")
                     st.write(response.text)
 
@@ -87,21 +87,24 @@ if check_password():
         
         if st.button("Générer le Prompt"):
             if user_input_loopix and uploaded_file:
-                with st.spinner("LooPix analyse et rédige..."):
+                with st.spinner("LooPix analyse votre visage et crée le prompt..."):
                     try:
                         img = PIL.Image.open(uploaded_file)
                         
-                        # Utilisation du nom de modèle complet pour éviter l'erreur NotFound
+                        # INITIALISATION SIMPLE
                         model = genai.GenerativeModel('gemini-1.5-flash')
                         
-                        prompt_system = """Tu es LooPix, un expert en création de prompts pour Midjourney. 
-                        Regarde attentivement la personne sur la photo (cheveux, traits, style) et intègre-la dans le scénario demandé.
-                        Réponds avec un prompt détaillé en ANGLAIS, suivi d'une courte explication en FRANÇAIS."""
+                        # CONSTRUCTION DU MESSAGE (Texte + Image)
+                        # On met les instructions directement dans le message envoyé
+                        prompt_complet = [
+                            f"CONTEXTE: Tu es LooPix, expert en Midjourney. Analyse la personne sur cette photo et crée un prompt en anglais pour la mettre dans cette situation : {user_input_loopix}. RÉPONSE ATTENDUE: Le prompt technique détaillé en anglais, puis une explication courte en français.",
+                            img
+                        ]
                         
-                        # Appel multimodal corrigé
-                        response = model.generate_content([prompt_system, user_input_loopix, img])
+                        response = model.generate_content(prompt_complet)
                         
                         st.markdown("---")
+                        st.markdown("### ✨ Résultat LooPix")
                         st.write(response.text)
                     except Exception as e:
                         st.error(f"Erreur technique : {e}")
