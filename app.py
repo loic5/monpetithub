@@ -92,7 +92,7 @@ if check_password():
                         img = PIL.Image.open(uploaded_file)
                         
                         # Utilisation du nom de modèle complet pour éviter l'erreur NotFound
-                        model = genai.GenerativeModel(model_name='models/gemini-1.5-flash')
+                        model = genai.GenerativeModel('gemini-1.5-flash')
                         
                         prompt_system = """Tu es LooPix, un expert en création de prompts pour Midjourney. 
                         Regarde attentivement la personne sur la photo (cheveux, traits, style) et intègre-la dans le scénario demandé.
