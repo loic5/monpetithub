@@ -73,37 +73,37 @@ if check_password():
                     st.markdown("### 📋 Résultat")
                     st.write(response.text)
 
-    # --- 4. MOTEUR : LOOPIX (L'Architecte d'Image) ---
+    # --- 4. MOTEUR : LOOPIX ---
     elif st.session_state.page == "loopix":
         st.title("⚡ LooPix")
-        st.write("Décrivez votre mise en scène et ajoutez votre photo de référence.")
+        st.write("Décrivez votre mise en scène et ajoutez votre photo.")
         
-        # AJOUT : Bouton pour télécharger la photo
-        uploaded_file = st.file_uploader("Choisissez votre photo de référence...", type=['png', 'jpg', 'jpeg'])
+        uploaded_file = st.file_uploader("Choisir une photo...", type=['png', 'jpg', 'jpeg'])
         
-        user_input_loopix = st.text_area("Votre souhait (ex: Moi en tenue de samouraï dans le futur) :", height=150)
+        # Petit test visuel pour confirmer que la photo est bien là
+        if uploaded_file is not None:
+            st.image(uploaded_file, caption="✅ Photo prête", width=150)
         
-        if st.button("Générer le Prompt Expert"):
+        user_input_loopix = st.text_area("Votre souhait :", height=150)
+        
+        if st.button("Générer le Prompt"):
             if user_input_loopix and uploaded_file:
-                with st.spinner("LooPix analyse votre photo et crée le prompt..."):
-                    # On charge l'image pour l'envoyer à Gemini
-                    import PIL.Image
-                    img = PIL.Image.open(uploaded_file)
-                    
-                    model = genai.GenerativeModel('models/gemini-1.5-flash', 
-                        system_instruction="""Tu es LooPix. Ta mission est d'analyser la photo fournie (traits du visage, cheveux, style) et la demande de l'utilisateur pour créer un PROMPT TECHNIQUE en ANGLAIS pour Midjourney.
+                with st.spinner("LooPix analyse et rédige..."):
+                    try:
+                        import PIL.Image
+                        img = PIL.Image.open(uploaded_file)
                         
-                        Structure ta réponse ainsi :
-                        1. **Prompt technique (Anglais)** : Un paragraphe détaillé commençant par 'A high-quality photo of [description de la personne basée sur l'image]...' en incluant le décor, les habits et l'éclairage. Ajoute les paramètres '--ar 16:9 --v 6.0'.
-                        2. **Note de LooPix (Français)** : Explique tes choix artistiques.""")
-                    
-                    # On envoie le texte + l'image
-                    response = model.generate_content([user_input_loopix, img])
-                    
-                    st.markdown("---")
-                    st.markdown("### ✨ Résultat de la conception")
-                    st.write(response.text)
-            elif not uploaded_file:
-                st.warning("Pense à ajouter une photo pour que je sache à quoi tu ressembles !")
+                        # FORCE LE NOM DU MODELE ICI
+                        model = genai.GenerativeModel('gemini-1.5-flash') 
+                        
+                        # On passe les instructions système direct dans l'appel si besoin
+                        prompt_system = """Tu es LooPix expert en prompts. Analyse l'image et crée un prompt anglais détaillé pour Midjourney."""
+                        
+                        response = model.generate_content([prompt_system, user_input_loopix, img])
+                        
+                        st.markdown("---")
+                        st.write(response.text)
+                    except Exception as e:
+                        st.error(f"Erreur technique : {e}")
             else:
-                st.warning("Dis-moi ce que tu veux faire (le contexte, l'endroit...)")
+                st.warning("Il manque la photo ou le texte !")
