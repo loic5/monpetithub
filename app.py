@@ -1,5 +1,6 @@
 import streamlit as st
 import google.generativeai as genai
+import PIL.Image # Importé ici pour plus de stabilité
 
 # --- 1. CONFIGURATION & SÉCURITÉ ---
 st.set_page_config(page_title="Mon AI Hub Privé", layout="wide")
@@ -53,7 +54,6 @@ if check_password():
                 st.rerun()
         
         with col2:
-            # ICI LE CHANGEMENT NOM : LooPix
             st.markdown('<div class="card"><h3>⚡ LooPix</h3><p>Générateur de contenu intelligent.</p></div>', unsafe_allow_html=True)
             if st.button("Lancer LooPix", key="launch_loopix"):
                 st.session_state.page = "loopix"
@@ -80,25 +80,25 @@ if check_password():
         
         uploaded_file = st.file_uploader("Choisir une photo...", type=['png', 'jpg', 'jpeg'])
         
-        # Petit test visuel pour confirmer que la photo est bien là
         if uploaded_file is not None:
             st.image(uploaded_file, caption="✅ Photo prête", width=150)
         
-        user_input_loopix = st.text_area("Votre souhait :", height=150)
+        user_input_loopix = st.text_area("Votre souhait (ex: Moi en astronaute) :", height=150)
         
         if st.button("Générer le Prompt"):
             if user_input_loopix and uploaded_file:
                 with st.spinner("LooPix analyse et rédige..."):
                     try:
-                        import PIL.Image
                         img = PIL.Image.open(uploaded_file)
                         
-                        # FORCE LE NOM DU MODELE ICI
-                        model = genai.GenerativeModel('gemini-1.5-flash') 
+                        # Utilisation du nom de modèle complet pour éviter l'erreur NotFound
+                        model = genai.GenerativeModel(model_name='models/gemini-1.5-flash')
                         
-                        # On passe les instructions système direct dans l'appel si besoin
-                        prompt_system = """Tu es LooPix expert en prompts. Analyse l'image et crée un prompt anglais détaillé pour Midjourney."""
+                        prompt_system = """Tu es LooPix, un expert en création de prompts pour Midjourney. 
+                        Regarde attentivement la personne sur la photo (cheveux, traits, style) et intègre-la dans le scénario demandé.
+                        Réponds avec un prompt détaillé en ANGLAIS, suivi d'une courte explication en FRANÇAIS."""
                         
+                        # Appel multimodal corrigé
                         response = model.generate_content([prompt_system, user_input_loopix, img])
                         
                         st.markdown("---")
