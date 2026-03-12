@@ -92,7 +92,7 @@ if check_password():
                         img = PIL.Image.open(uploaded_file)
                         
                         # INITIALISATION SIMPLE
-                        model = genai.GenerativeModel('gemini-pro-vision')
+                        model = genai.GenerativeModel('models/gemini-1.5-flash-8b')
                         
                         # CONSTRUCTION DU MESSAGE (Texte + Image)
                         # On met les instructions directement dans le message envoyé
